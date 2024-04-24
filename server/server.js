@@ -1,95 +1,44 @@
-// ENV variables 
-if (process.env.NODE_ENV != "production") { 
-require('dotenv').config(); 
+// ENV variables
+if (process.env.NODE_ENV != "production") {
+  require("dotenv").config();
 }
 
+// IMPORT DEPENDENCIES
+const express = require("express");
+const connectToDb = require("./config/connectToDb");
+const equipmentController = require("./controllers/equipmentController");
+const cors = require("cors");
 
-// IMPORT DEPENDENCIES 
-const express = require('express'); 
-const connectToDb = require('./config/connectToDb');
-const Equipment = require("./models/equipment")
-
-// CREATE AN EXPRESS APP 
-const app = express(); 
+// CREATE AN EXPRESS APP
+const app = express();
 
 // CONFIGURE EXPRESS APP
-app.use(express.json()); 
+app.use(express.json());
+app.use(cors()); //allows the server to accept request from any domain
 
-// CONNECT TO DATABASE 
-connectToDb(); 
+// CONNECT TO DATABASE
+connectToDb();
 
-// ROUTING 
-// RETRIEVING (GET) 
-app.get('/', (req,res)=> { 
-   res.json({hello: "world"}) 
-})
+// ROUTING
+// RETRIEVING (GET)
+app.get("/", (req, res) => {
+  res.json({ hello: "world" });
+}); //testing
 
-// FETCH ALL DATA (GET) 
-app.get('/equipment', async (req, res)=> { 
-    // find the equipment 
-const equipment = await Equipment.find(); 
-    // respond with equipment
-    res.json({equipment:equipment}); 
-})
+// FETCH ALL DATA (GET)
+app.get("/equipment", equipmentController.fetchEquipments);
 
 // FETCH SINGLE PIECE OF EQUIPMENT
-app.get('/equipment/:id', async (req,res)=> { 
-    // get ID off url
-    const equipmentID = req.params.id;
-    // find the equipment by ID
-    const equipment = await Equipment.findById(equipmentID); 
-    // respond with equipment
-    res.json({equipment: equipment})
-
-})
+app.get("/equipment/:id", equipmentController.fetchEquipment);
 
 // CREATING (POST)
-app.post('/equipment', async (req, res)=> { 
-// get sent in data off request body 
-const name = req.body.name; 
-const weight = req.body.weight; 
-const max_length = req.body.max_length; 
-const location = req.body.location; 
-// create equipment object
-const equipment = await Equipment.create({
-    name, 
-    weight,
-    max_length, 
-    location})
-// respond with the new equipment
-res.json({equipment: equipment})
-})
+app.post("/equipment", equipmentController.createEquipment);
 
 // UPDATE (PUT)
-// this will not send back the updated equipment without finding the updated equipemnt again 
-app.put('/equipment/:id', async (req, res)=> { 
-    // get the id off url
-    const equipmentID = req.params.id;  
-    // get the data off the req body
-    const name = req.body.name; 
-const weight = req.body.weight; 
-const max_length = req.body.max_length; 
-const location = req.body.location; 
+// this will not send back the updated equipment without finding the updated equipemnt again
+app.put("/equipment/:id", equipmentController.updateEquipment);
 
-// find and update the record
-await Equipment.findByIdAndUpdate(equipmentID,
-    {name, weight, max_length, location}); 
-    
-    // find updated equipment record
-    const equipment= await Equipment.findById(equipmentID)
-    
-    // respond with it 
-    res.json({equipment:equipment});
-})
-
-// DELETE
-app.delete('/equipment/:id', async (req, res)=> {
-    // get id off url 
-    const equipmentID = req.params.id; 
-    //delete the record
-    const equipment = await Equipment.deleteOne({id:equipmentID}); 
-    // respond 
-    res.json({success: "Record Deleted"})
-})
-// START SERVER 
-app.listen(process.env.PORT); 
+// DELETE ==========================================================> this is still showing in my mongodb database although it is reflecting as deleted in postman
+app.delete("/equipment/:id", equipmentController.deleteEquipment);
+// START SERVER
+app.listen(process.env.PORT);
