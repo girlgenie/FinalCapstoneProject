@@ -60,8 +60,9 @@ const updateEquipment = async (req, res) => {
 const deleteEquipment = async (req, res) => {
   // get id off url
   const equipmentID = req.params.id;
+  console.log(equipmentID);
   //delete the record
-  const equipment = await Equipment.deleteOne({ id: equipmentID });
+  await Equipment.deleteOne({ _id: equipmentID });
   // respond
   res.json({ equipment: "Record Deleted" });
 };
